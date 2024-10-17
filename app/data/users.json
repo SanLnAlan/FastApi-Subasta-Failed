@@ -1,0 +1,10 @@
+{
+    "1":{
+        "username": "Uriel",
+        "role": "investor"
+    },
+    "2":{
+        "username": "Juan",
+        "role": "operator"
+    }
+}
