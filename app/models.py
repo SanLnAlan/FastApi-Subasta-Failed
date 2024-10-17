@@ -1,11 +1,16 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
+from enum import Enum
 
-class UserCreate(BaseModel):
+class RoleEnum(str, Enum):
+    operator = "operator"
+    inversor = "inversor"
+
+class User(BaseModel):
     username: str
-    password: str
-    role: str
+    fullname: str
+    role: RoleEnum
 
 class OperationCreate(BaseModel):
     amount_requiered: float
@@ -16,3 +21,5 @@ class BidCreate(BaseModel):
     amount: float
     interest_rate: float
 
+class Ejemplo(BaseModel):
+    ejemplo: int
