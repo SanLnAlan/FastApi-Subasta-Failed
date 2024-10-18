@@ -41,7 +41,7 @@ class Operation(BaseModel):
         example="3725f377-11d4-4f09-a7bf-e292ae783c99"
     )
     amount_required: float = Field(..., description="Amount required to be sucessfully sold")
-    amount_limit: float = Field(..., description="Maximum allowable amount of money that can be invested")
+    amount_limit: float = Field(..., description="Maximum allowable amount of money that can be invested", gt=0)
     interest_rate: float = Field(
         ...,
         description="The interest rate that determines the return on investment or cost over time"
@@ -49,7 +49,6 @@ class Operation(BaseModel):
 
     date_deadline: datetime = Field(..., title="Deadline", description="The final date by which the operation must be completed")
     datetime_published: datetime = Field(..., title="Date published", description="Date and time when the operation was created")
-    # _datetime_published: datetime = PrivateAttr(Field(default_factory=datetime.now))
     status: StatusEnum = Field(StatusEnum.open, description="Status of the operation")
     bids: list[UUID] = []
     creator_user_id: UUID = Field(None, description="This field wll be auto fill.")
@@ -58,7 +57,7 @@ class Operation(BaseModel):
 
 class UpdateOperation(BaseModel):
     amount_required: float = Field(None, description="Amount required to be sucessfully sold")
-    amount_limit: float = Field(None, description="Maximum allowable amount of money that can be invested")
+    amount_limit: float = Field(None, description="Maximum allowable amount of money that can be invested", gt=0)
     interest_rate: float = Field(
         None,
         description="The interest rate that determines the return on investment or cost over time"
@@ -67,8 +66,24 @@ class UpdateOperation(BaseModel):
 
 
 class Bid(BaseModel):
-    amount: float
+    id: UUID = Field(
+        default_factory=uuid4,
+        description="Unique identifier for the bid",
+        title="ID",
+        example="4725f377-11d4-4f09-a7bf-e292ae783c11"
+    )
+    operation_id: UUID = Field(
+        ...,
+        description="Unique identifier for the operation",
+        title="ID",
+        example="4725f377-11d4-4f09-a7bf-e292ae783c11"
+    )
+    amount_offered: float = Field(None, description="Amount offered for a operation")
+    created_at: datetime = Field(..., description="Date and time when the bid was created")
+    updated_at: datetime = Field(..., description="Date and time when the bid was updated")
+    is_winning: bool = Field(False, description="Is the bid winnner?")
     interest_rate: float
+    creator_user_id: UUID = Field(None, description="This field wll be auto fill.")
 
 
 class Ejemplo(BaseModel):

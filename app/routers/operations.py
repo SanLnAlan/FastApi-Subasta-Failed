@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Path, HTTPException
+from fastapi import Path, APIRouter, HTTPException
 from models import Operation, RoleEnum, UpdateOperation
 from data.operation_dummy_data import db
 from data.user_dummy_data import db as db_users
 from datetime import datetime
 from uuid import UUID, uuid4
-# from models import User, Ejemplo
+from utils.utils import validate_role_user, validate_amounts
 
 router = APIRouter(
     prefix="/operations",
@@ -23,33 +23,24 @@ async def get_operation(id: UUID = Path(...,title="ID", Description="Id of the o
         status_code=404, detail=f"Could not find operation with id {id}."
     )
 
-def verify_role(user_operator_id):
-    for user in db_users:
-        if user.id == user_operator_id:
-            if user.role != RoleEnum.operator: 
-                raise HTTPException(
-                    status_code=403, detail=f"User with id {user_operator_id} does not have the operator role and cannot create operations"
-                )
-            break
-    else:
-        raise HTTPException(
-                status_code=404, detail=f"User with id {user_operator_id} was not found."
-            )
-    return
-
 
 @router.post("/{user_operator_id}")
 async def create_operation(user_operator_id: UUID, operation : Operation):
-    verify_role(user_operator_id)
+    validate_role_user(user_operator_id, RoleEnum.operator)
+    validate_amounts(operation)
     operation.creator_user_id = user_operator_id
     db.append(operation)
     return {"id": operation.id}
 
 
 @router.put("/{operation_id}/{user_id}")
-async def update_operation(operation_update: UpdateOperation, user_operator_id: UUID, operation_id: UUID):
-    verify_role(user_operator_id)
-    
+async def update_operation(
+    operation_update: UpdateOperation,
+    user_operator_id: UUID, 
+    operation_id: UUID
+):
+    validate_role_user(user_operator_id, RoleEnum.operator)
+    validate_amounts(operation_update)
     for operation in db:
         if operation.id == operation_id:
             if operation_update.amount_required:
@@ -71,7 +62,7 @@ async def update_operation(operation_update: UpdateOperation, user_operator_id: 
 @router.delete("/{operation_id}/{user_id}")
 async def delete_operation(operation_update: UpdateOperation, user_operator_id: UUID, operation_id: UUID):
 # async def delete_user(id: UUID = Path(...,title="ID", Description="Id of the user to retrieve")):
-    verify_role(user_operator_id)
+    validate_role(user_operator_id)
     for operation in db:
         if operation.id == operation_id:
             db.remove(operation)
