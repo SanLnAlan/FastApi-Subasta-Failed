@@ -1,8 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Path, HTTPException
 from models import User, UpdateUser
 from data.user_dummy_data import db
 from uuid import UUID
 from fastapi import HTTPException
+
+
 router = APIRouter(
     prefix="/users",
 )
@@ -11,9 +13,16 @@ router = APIRouter(
 async def get_users():
     return db
 
-# @router.get("/{id}")
-# async def read_user(id: str):
-#     return db_user[id]
+
+@router.get("/{id}")
+async def get_user(id: UUID = Path(...,title="ID", Description="Id of the user to retrieve")):
+    for user in db:
+        if user.id == id:
+            return user
+    raise HTTPException(
+        status_code=404, detail=f"Could not find user with id {id}."
+    )
+
 
 @router.post("/")
 async def create_user(user: User):
@@ -22,23 +31,23 @@ async def create_user(user: User):
 
 
 @router.put("/{id}")
-async def update_user(user_update: UpdateUser, id: UUID):
+async def update_user(user_update: UpdateUser, id: UUID = Path(...,title="ID", Description="Id of the user to retrieve")):
     for user in db:
         if user.id == id:
-            if user_update.username is not None:
-                user.username = user_update
-            if user_update.fullname is not None:
+            if user_update.username:
+                user.username = user_update.username
+            if user_update.fullname:
                 user.fullname = user_update.fullname
-            if user_update.role is not None:
+            if user_update.role:
                 user.role = user_update.role
-            return user.id
+            return {"detail": "user updated", "user": user}
     raise HTTPException(
         status_code=404, detail=f"Could not find user with id {id}."
     )
 
 
 @router.delete("/{id}")
-async def delete_user(id: UUID):
+async def delete_user(id: UUID = Path(...,title="ID", Description="Id of the user to retrieve")):
     for user in db:
         if user.id == id:
             db.remove(user)
