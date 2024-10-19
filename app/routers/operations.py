@@ -4,7 +4,7 @@ from data.operation_dummy_data import db
 from data.user_dummy_data import db as db_users
 from datetime import datetime
 from uuid import UUID, uuid4
-from utils.utils import validate_role_user, validate_amounts
+from utils.utils import validate_role_user, validate_amounts, valid_id
 
 router = APIRouter(
     prefix="/operations",
@@ -26,6 +26,7 @@ async def get_operation(id: UUID = Path(...,title="ID", Description="Id of the o
 
 @router.post("/{user_operator_id}")
 async def create_operation(user_operator_id: UUID, operation : Operation):
+    valid_id(operation.id, db)
     validate_role_user(user_operator_id, RoleEnum.operator)
     validate_amounts(operation)
     operation.creator_user_id = user_operator_id
@@ -61,8 +62,7 @@ async def update_operation(
 
 @router.delete("/{operation_id}/{user_id}")
 async def delete_operation(operation_update: UpdateOperation, user_operator_id: UUID, operation_id: UUID):
-# async def delete_user(id: UUID = Path(...,title="ID", Description="Id of the user to retrieve")):
-    validate_role(user_operator_id)
+    validate_role_user(user_operator_id)
     for operation in db:
         if operation.id == operation_id:
             db.remove(operation)

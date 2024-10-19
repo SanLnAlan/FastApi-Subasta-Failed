@@ -3,6 +3,7 @@ from models import User, UpdateUser
 from data.user_dummy_data import db
 from uuid import UUID
 from fastapi import HTTPException
+from utils.utils import valid_id
 
 
 router = APIRouter(
@@ -26,6 +27,7 @@ async def get_user(id: UUID = Path(...,title="ID", Description="Id of the user t
 
 @router.post("/")
 async def create_user(user: User):
+    valid_id(user.id, db)
     db.append(user)
     return {"id": user.id}
 

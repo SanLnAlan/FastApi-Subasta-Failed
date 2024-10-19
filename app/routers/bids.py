@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Path, HTTPException
 from models import RoleEnum, Bid
-from data.bids_dummy_data import db
+from data.bid_dummy_data import db
 from data.user_dummy_data import db as db_users
 from datetime import datetime
 from uuid import UUID, uuid4
-from utils.utils import validate_role_user
+from utils.utils import validate_role_user, validate_id_operation, validate_amount_offered, valid_id, update_winning_bids
 
 router = APIRouter(
     prefix="/bids",
@@ -26,9 +26,15 @@ async def get_bid(id: UUID = Path(...,title="ID", Description="Id of the bid to 
 
 @router.post("/{user_inversor_id}")
 async def create_bid(user_inversor_id: UUID, bid : Bid):
+    valid_id(bid.id, db)
     validate_role_user(user_inversor_id, RoleEnum.inversor)
-    # validate_amounts(operation)
+    validate_id_operation(bid.operation_id)
+    validate_amount_offered(bid, bid.operation_id)
+    bid.created_at = datetime.now()
+    bid.updated_at = datetime.now()
     bid.creator_user_id = user_inversor_id
+    bid.is_winning = True
+    update_winning_bids(bid.id, bid.operation_id)
     db.append(bid)
     return {"id": bid.id}
 
